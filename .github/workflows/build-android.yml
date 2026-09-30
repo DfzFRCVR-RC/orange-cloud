@@ -40,14 +40,16 @@ jobs:
           echo "OAUTH_CLIENT_ID 已注入: ${OAUTH_ID:-<空>}"
 
       - name: 构建 OSS 包
+        working-directory: apps/android
         run: |
           chmod +x gradlew
           ./gradlew :app:assembleOssDebug --no-daemon
 
       - name: 上传 APK 产物
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-oss-debug
-          path: app/build/outputs/apk/oss/debug/*.apk
-          if-no-files-found: ignore
+          path: apps/android/app/build/outputs/apk/oss/debug/*.apk
+          if-no-files-found: warn
+
