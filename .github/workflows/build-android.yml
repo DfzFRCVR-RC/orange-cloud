@@ -4,12 +4,6 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      oauth_client_id:
-        description: "OAUTH_CLIENT_ID（注入 local.properties）"
-        required: false
-        default: "e835bf30a41b35df00333e74f35a6439"
-        type: string
 
 jobs:
   build:
@@ -18,11 +12,11 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 配置 JDK 17
+      - name: 配置 JDK 21 (JetBrains)
         uses: actions/setup-java@v4
         with:
-          java-version: "17"
-          distribution: "temurin"
+          java-version: "21"
+          distribution: "jetbrains"
 
       - name: 缓存 Gradle
         uses: actions/cache@v4
@@ -35,11 +29,10 @@ jobs:
       - name: 写入 local.properties（OAuth 客户端）
         working-directory: apps/android
         run: |
-          OAUTH_ID="${{ github.event.inputs.oauth_client_id }}"
-          if [ -z "$OAUTH_ID" ]; then OAUTH_ID="${{ secrets.OAUTH_CLIENT_ID }}"; fi
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          [ -n "$OAUTH_ID" ] && echo "OAUTH_CLIENT_ID=$OAUTH_ID" >> local.properties
-          echo "OAUTH_CLIENT_ID 已注入: ${OAUTH_ID:-<空>}"
+          echo "OAUTH_CLIENT_ID=e835bf30a41b35df00333e74f35a6439" >> local.properties
+          echo "OAUTH_CLIENT_ID 已注入:"
+          grep OAUTH_CLIENT_ID local.properties
 
       - name: 构建 OSS 包
         working-directory: apps/android
