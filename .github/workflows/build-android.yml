@@ -33,10 +33,12 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
 
       - name: 写入 local.properties（OAuth 客户端）
+        working-directory: apps/android
         run: |
           OAUTH_ID="${{ github.event.inputs.oauth_client_id }}"
           if [ -z "$OAUTH_ID" ]; then OAUTH_ID="${{ secrets.OAUTH_CLIENT_ID }}"; fi
-          [ -n "$OAUTH_ID" ] && echo "OAUTH_CLIENT_ID=$OAUTH_ID" > local.properties
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          [ -n "$OAUTH_ID" ] && echo "OAUTH_CLIENT_ID=$OAUTH_ID" >> local.properties
           echo "OAUTH_CLIENT_ID 已注入: ${OAUTH_ID:-<空>}"
 
       - name: 构建 OSS 包
@@ -52,4 +54,3 @@ jobs:
           name: app-oss-debug
           path: apps/android/app/build/outputs/apk/oss/debug/*.apk
           if-no-files-found: warn
-
