@@ -9,16 +9,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出代码
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 配置 JDK 21 (JetBrains)
+      - name: Set up JDK 21 (JetBrains)
         uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "jetbrains"
 
-      - name: 缓存 Gradle
+      - name: Cache Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -26,36 +26,36 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
 
-      - name: 写入 local.properties（OAuth 客户端）
+      - name: Write local.properties (OAuth client)
         working-directory: apps/android
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "OAUTH_CLIENT_ID=e835bf30a41b35df00333e74f35a6439" >> local.properties
-          echo "OAUTH_CLIENT_ID 已注入:"
+          echo "OAUTH_CLIENT_ID injected:"
           grep OAUTH_CLIENT_ID local.properties
 
-      - name: 临时替换 OAuthConfig 回调地址
+      - name: Patch OAuthConfig redirect URI
         working-directory: apps/android
         run: |
-          sed -i 's|const val REDIRECT_URI = "https://o-c.do/oauth/callback"|const val REDIRECT_URI = "https://oauth.miside.ccwu.cc/oauth/callback"|' \
+          sed -i 's|const val REDIRECT_URI = "https://o-c.do/oauth/callback"|const val REDIRECT_URI = "https://oatuh.miside.ccwu.cc/oauth/callback"|' \
             app/src/main/kotlin/jiamin/chen/orangecloud/core/auth/OAuthConfig.kt
-          echo "=== 替换后的 REDIRECT_URI ==="
+          echo "=== Patched REDIRECT_URI ==="
           grep REDIRECT_URI app/src/main/kotlin/jiamin/chen/orangecloud/core/auth/OAuthConfig.kt
 
-      - name: 构建 OSS Release 包（未签名）
+      - name: Build OSS release (unsigned)
         working-directory: apps/android
         run: |
           chmod +x gradlew
           ./gradlew :app:assembleOssRelease --no-daemon
 
-      - name: 查找并列出所有 APK
+      - name: List all APK artifacts
         if: always()
         working-directory: apps/android
         run: |
-          echo "=== 搜索所有 APK 文件 ==="
-          find . -name "*.apk" -type f 2>/dev/null || echo "没有找到 APK"
+          echo "=== Searching for APK files ==="
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK found"
 
-      - name: 上传 APK 产物
+      - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
