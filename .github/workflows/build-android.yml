@@ -34,6 +34,14 @@ jobs:
           echo "OAUTH_CLIENT_ID 已注入:"
           grep OAUTH_CLIENT_ID local.properties
 
+      - name: 临时替换 OAuthConfig 回调地址
+        working-directory: apps/android
+        run: |
+          sed -i 's|const val REDIRECT_URI = "https://o-c.do/oauth/callback"|const val REDIRECT_URI = "https://oauth.miside.ccwu.cc/oauth/callback"|' \
+            app/src/main/kotlin/jiamin/chen/orangecloud/core/auth/OAuthConfig.kt
+          echo "=== 替换后的 REDIRECT_URI ==="
+          grep REDIRECT_URI app/src/main/kotlin/jiamin/chen/orangecloud/core/auth/OAuthConfig.kt
+
       - name: 构建 OSS Release 包（未签名）
         working-directory: apps/android
         run: |
