@@ -1,4 +1,4 @@
-name: Android OSS 构建
+name: Android OSS Release (Unsigned)
 
 on:
   push:
@@ -34,16 +34,25 @@ jobs:
           echo "OAUTH_CLIENT_ID 已注入:"
           grep OAUTH_CLIENT_ID local.properties
 
-      - name: 构建 OSS 包
+      - name: 构建 OSS Release 包（未签名）
         working-directory: apps/android
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleOssDebug --no-daemon
+          ./gradlew :app:assembleOssRelease --no-daemon
+
+      - name: 查找并列出所有 APK
+        if: always()
+        working-directory: apps/android
+        run: |
+          echo "=== 搜索所有 APK 文件 ==="
+          find . -name "*.apk" -type f 2>/dev/null || echo "没有找到 APK"
 
       - name: 上传 APK 产物
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: app-oss-debug
-          path: apps/android/app/build/outputs/apk/oss/debug/*.apk
-          if-no-files-found: warn
+          name: app-oss-release-unsigned
+          path: |
+            apps/android/app/build/outputs/apk/**/*.apk
+            apps/android/**/build/outputs/apk/**/*.apk
+          if-no-files-found: error
