@@ -52,7 +52,7 @@ jobs:
 
       - name: Write local.properties
         env:
-          OAUTH_CLIENT_ID: ${{ inputs.oauth_client_id }}
+          OAUTH_CLIENT_ID: ${{ inputs.oauth_client_id || vars.OAUTH_CLIENT_ID }}
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -106,13 +106,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA256: ${{ steps.collect.outputs.sha256 }}
+          NOTES: |
+            自编译全解锁版（oss 风味）
+            回调中转：https://oc.miaowu.us.ci/oauth/callback
         run: |
           cd "$GITHUB_WORKSPACE/out"
           TAG="build-$(date -u +%Y%m%d-%H%M%S)"
-          gh release create "$TAG" *.apk \
+          gh release create "$TAG" ./*.apk \
             --repo "$GITHUB_REPOSITORY" \
             --title "Orange Cloud OSS $TAG" \
-            --notes "自编译全解锁版（oss 风味）
+            --notes "$NOTES
 
-- 回调中转：https://oc.miaowu.us.ci/oauth/callback
-- SHA256: \`$SHA256\`"
+          SHA256: $SHA256"
