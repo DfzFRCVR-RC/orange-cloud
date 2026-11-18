@@ -131,10 +131,19 @@ jobs:
             回调中转：https://oc.miaowu.us.ci/oauth/callback
         run: |
           cd "$GITHUB_WORKSPACE/out"
-          TAG="build-$(date -u +%Y%m%d-%H%M%S)"
+          # 版本号从 build.gradle.kts 读，标题带上它 + 时间 + commit，方便区分多次构建
+          VER=$(grep -oP 'versionName\s*=\s*"\K[^"]+' "$GITHUB_WORKSPACE/apps/android/app/build.gradle.kts" | head -1)
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
+          STAMP=$(date -u +%Y%m%d-%H%M%S)
+          TAG="v${VER}-${STAMP}"
+          TITLE="OrangeCloud-OSS-v${VER}-${STAMP}-${SHORT_SHA}"
           gh release create "$TAG" ./*.apk \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Orange Cloud OSS $TAG" \
+            --title "$TITLE" \
             --notes "$NOTES
 
+          Commit: $SHORT_SHA
           SHA256: $SHA256"
+          echo "### ✅ 已发布：$TITLE" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "下载：\`https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/app-oss-release.apk\`" >> "$GITHUB_STEP_SUMMARY"
